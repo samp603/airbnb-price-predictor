@@ -8,9 +8,9 @@ Airbnb Price Predictor estimates nightly prices of listings using ML.
 
 1\. Install dependencies: `pip install -r requirements.txt`
 
-2\. Run preprocessing: `python src/preprocess\_data.py`
+2\. Run preprocessing: `python src/preprocess_data.py`
 
-3\. Train model: `python src/train\_model.py`
+3\. Train model: `python src/train_model.py`
 
 
 
