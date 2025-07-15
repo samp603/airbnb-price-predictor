@@ -131,5 +131,3 @@ Make changes here as you work — or create issues/PRs in GitHub.
 ✅ = Done  
 🟡 = In Progress  
 ⬜ = Not started
-
-We got this! 💪
