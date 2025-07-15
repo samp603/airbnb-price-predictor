@@ -20,5 +20,7 @@ A machine learning-based tool that predicts nightly prices for Airbnb listings u
 ## 📁 Dataset
 [NYC Airbnb Open Data (Kaggle)](https://www.kaggle.com/datasets/dgomonov/new-york-city-airbnb-open-data)
 
-## 🔗 Repository
-[View the GitHub Repo](https://github.com/samp603/airbnb-price-predictor)
+## 🚧 Next Steps
+- Add more models (Random Forest, XGBoost)
+- Improve EDA and visualizations
+- Collaborate on hyperparameter tuning and deployment

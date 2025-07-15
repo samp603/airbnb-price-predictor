@@ -1,113 +1,135 @@
-# ✅ Airbnb Price Predictor – Team TODOs
 
-Welcome! Here's a breakdown of remaining tasks with clear suggestions. Feel free to assign yourself to one and check it off as you go.
+# ✅ Airbnb Price Predictor – Team TODOs (Complete Roadmap)
+
+Welcome! This document lays out everything that still needs to be done for our project — broken down by category. Everything has context, suggestions, and space for you to claim tasks. Let’s collaborate and make this project amazing.
+
+---
+
+## 🎯 Project Goal Recap
+
+We’re building a **machine learning tool to predict nightly Airbnb prices** based on features like location, room type, reviews, etc.
+
+### Final goal:
+- Users can input an Airbnb listing’s details (like neighborhood, room type, etc.) and get a **predicted price**.
+- We’ll expose this as a simple **web app** using Flask (or Streamlit).
+- All code, models, visualizations, and writeups will be hosted in our GitHub repo and GitHub Pages site.
 
 ---
 
 ## 🔄 Data Preprocessing
 
-- [x] **Clean raw data** (DONE by Sam in `preprocess_data.py`)
-- [ ] **Explore feature engineering ideas**  
-  _Suggestions_:  
-  - Create a new feature: price per minimum nights (`price/minimum_nights`)  
-  - Log-transform skewed columns like `price`, `reviews_per_month`  
-  - Normalize numerical features (optional)
+✅ **Clean raw data**  
+> Done by Sam in `src/preprocess.py`. Loads the CSV, removes missing/outlier values, encodes categories, and saves cleaned data.
 
-- [ ] **Add preprocessing pipeline to scikit-learn Pipeline object**  
-  This makes the pipeline reusable and clean when training models.
+⬜ **Feature Engineering Ideas**  
+Try these in a notebook or new script:
+- `price_per_night = price / minimum_nights`
+- Log-transform highly skewed columns (`price`, `reviews_per_month`) to normalize distribution
+- Normalize/standardize numeric columns
+
+⬜ **Use a Scikit-Learn Pipeline**  
+Create a `preprocessing_pipeline.py` file to:
+- Bundle steps (imputer, encoder, scaler) into a pipeline
+- Easily reuse during modeling
 
 ---
 
 ## 📊 Exploratory Data Analysis (EDA)
 
-- [x] Basic EDA notebook started (`notebooks/eda.ipynb`)
-- [ ] **Add correlation heatmap**  
-  Use `sns.heatmap(df.corr(), annot=True, cmap='coolwarm')`
+✅ **Basic EDA started** (`notebooks/eda.ipynb`)
 
-- [ ] **Visualize feature distributions**  
-  Plot distributions of numerical features: `number_of_reviews`, `availability_365`, `minimum_nights`, etc.
+⬜ **Add correlation heatmap**
+```python
+sns.heatmap(df.corr(), annot=True, cmap='coolwarm')
+```
 
-- [ ] **Explore room_type and neighbourhood breakdown**  
-  Bar plots for counts, avg prices, and maybe boxplots.
+⬜ **Plot numeric distributions**  
+Look at histograms or boxplots of:
+- `number_of_reviews`
+- `availability_365`
+- `minimum_nights`
 
-- [ ] **Create a short summary.md**  
-  Note 5–10 key takeaways from EDA (trends, skew, potential features to drop/add)
+⬜ **Analyze categorical features**
+- Average price by `room_type`, `neighbourhood_group`
+- Count plots (how many listings per category)
+
+⬜ **Write `summary.md`**
+Document 5–10 key findings from EDA — this helps everyone later during modeling.
 
 ---
 
 ## 🧠 Modeling
 
-- [x] **Baseline Linear Regression** (DONE by Sam in `train_model.py`)
-- [ ] **Implement Random Forest Regressor**  
-  - Compare performance with baseline  
-  - Use `RandomForestRegressor(random_state=42)`
+✅ **Baseline model (Linear Regression)**  
+> Implemented by Sam in `train_model.py`
 
-- [ ] **Implement XGBoost Regressor**  
-  - Use `xgboost.XGBRegressor()`  
-  - Compare RMSE, R²
+⬜ **Random Forest Regressor**
+- Train `RandomForestRegressor(random_state=42)`
+- Compare RMSE and R² to baseline
+- Store results in a dictionary or table for comparison
 
-- [ ] **Hyperparameter tuning (bonus)**  
-  Try `GridSearchCV` or `RandomizedSearchCV` for Random Forest and XGBoost
+⬜ **XGBoost Regressor**
+- Train `xgboost.XGBRegressor()`
+- Evaluate RMSE, R²
+- Compare performance to previous models
 
-- [ ] **Create model_comparison.py**  
-  A script that prints a table comparing model performance side-by-side
+⬜ **Hyperparameter Tuning**
+> Optional but impactful
+- Use `GridSearchCV` or `RandomizedSearchCV`
+- Save best model parameters and performance
+
+⬜ **Create `model_comparison.py`**
+- Combine all model results into one table
 
 ---
 
 ## 📈 Evaluation & Visualization
 
-- [ ] **Prediction vs. Actual scatter plot**  
-  Show how close the predictions are to true values
+⬜ **Prediction vs Actual Plot**
 
-- [ ] **Residuals histogram**  
-  Helps visualize prediction error
+⬜ **Residuals Histogram**
 
-- [ ] **Bar chart of model RMSEs**  
-  Visually compare model performance
+⬜ **Bar Chart: Model RMSEs**
 
-- [ ] **Save best model to disk**  
-  Use `joblib` or `pickle` so it can be reused for deployment
+⬜ **Save Best Model to Disk**
 
 ---
 
-## 🌐 Stretch Goals
+## 🌐 Flask App (Stretch Goal)
 
-- [ ] **Build Streamlit or Flask web app**  
-  Simple UI that lets users enter Airbnb listing info and get a predicted price
+⬜ **Build Simple Flask Web App**
 
-- [ ] **Deploy using GitHub Pages or Streamlit Cloud**
-
----
-
-## 💡 Documentation / Presentation
-
-- [ ] **Complete README sections**  
-  Add usage instructions, model performance, credits, etc.
-
-- [ ] **Finish `Team Member Contributions` in README**
-
-- [ ] **Build and polish final project website**  
-  Make sure it shows model outputs, graphs, and clean writeups
-
-- [ ] **Make Presentation 
+⬜ **Deploy via GitHub Pages or Render**
 
 ---
 
-## 🙌 Team Roles (Flexible – can be changed)
+## 📚 Documentation & Website
 
-| Name            | Main Contributions |
-|-----------------|--------------------|
-| Samuel Paris    | Repo setup, preprocessing, baseline model, README |
-| Jeffrey Li      |  |
-| Elizabeth Minor |  |
+⬜ **README Enhancements**
+
+⬜ **Team Member Contributions**
+
+⬜ **Improve GitHub Pages Website**
+
+⬜ **Final Presentation Slides**
 
 ---
 
-### 🔁 Suggestions
+## 🛠 Suggestions & Workflow Tips
 
-- Communicate progress and questions in the group chat
-- Use `git pull` before working and `git push` after changes
-- Use branches if working on big things
-- Assign yourself in this file if you pick up a task
+- Use `git pull` before starting work
+- Use `git add . && git commit -m "message"` to save changes
+- Use `git push` to share
+- Coordinate in group chat — avoid stepping on each other’s work
 
-Let’s make this awesome!
+---
+
+## 👥 Task Tracker
+
+Make changes here as you work — or create issues/PRs in GitHub.
+
+✅ = Done  
+🟡 = In Progress  
+⬜ = Not started
+
+We got this! 💪
