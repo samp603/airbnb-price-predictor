@@ -28,32 +28,34 @@ scaler = MinMaxScaler()
 df[numeric_cols] = scaler.fit_transform(df[numeric_cols])
 
 
-#make "other" column to reduce amount of neighboorhoods
-neighbourhood_cols = [col for col in df.columns if 'neighbourhood' in col.lower() or 'neighborhood' in col.lower()]
+# --- Step 1: Convert all boolean columns to 1s and 0s ---
+bool_cols = df.select_dtypes(include="bool").columns
+df[bool_cols] = df[bool_cols].astype(int)
 
-# Find the top 10 most common neighbourhoods by summing True values
-neighbourhood_counts = {}
-for col in neighbourhood_cols:
-    if df[col].dtype == bool or df[col].isin([0, 1, True, False]).all():
-        neighbourhood_counts[col] = df[col].sum()
+# --- Step 2: Identify neighborhood columns ---
+neigh_cols = [col for col in df.columns if col.startswith("neighbourhood_")]
+group_cols = [col for col in neigh_cols if col.startswith("neighbourhood_group_")]
+spec_cols = [col for col in neigh_cols if col not in group_cols]
 
-# Get top 10 neighbourhoods
-top_10_neighbourhoods = sorted(neighbourhood_counts.items(), key=lambda x: x[1], reverse=True)[:10]
-top_neighbourhood_cols = [col for col, count in top_10_neighbourhoods]
+# --- Step 3: Convert neighborhood columns to 1s/0s (in case they were boolean too)
+df[neigh_cols] = df[neigh_cols].astype(int)
 
-# Keep only the top 10 neighbourhood columns and create an "Other" column
-# First, create the "Other" column - True if none of the top 10 are True
-df['neighbourhood_Other'] = ~df[top_neighbourhood_cols].any(axis=1)
+# --- Step 4: Keep only top 10 specific neighborhoods
+top_spec_cols = df[spec_cols].sum().sort_values(ascending=False).head(10).index.tolist()
+other_spec_cols = [col for col in spec_cols if col not in top_spec_cols]
 
-# Keep only the top 10 neighbourhood columns plus the "Other" column
-cols_to_keep = top_neighbourhood_cols + ['neighbourhood_Other']
-cols_to_drop = [col for col in neighbourhood_cols if col not in top_neighbourhood_cols]
+# --- Step 5: Create 'neighbourhood_other'
+neigh_other = df[other_spec_cols].sum(axis=1).clip(upper=1).rename("neighbourhood_other")
 
-if cols_to_drop:
-    df = df.drop(columns=cols_to_drop)
-    print(f"Dropped {len(cols_to_drop)} less common neighbourhood columns")
+# --- Step 6: Drop unused specific neighborhoods and add 'other'
+df = df.drop(columns=[col for col in other_spec_cols if col in df.columns])
+df = pd.concat([df, neigh_other], axis=1)
+df = df.copy()  # Defragment the DataFrame
 
-print(f"Kept {len(cols_to_keep)} neighbourhood columns (top 10 + Other)")
+# --- Step 7: Optional column reordering ---
+final_neigh_cols = group_cols + top_spec_cols + ["neighbourhood_other"]
+df = df[[col for col in df.columns if col not in final_neigh_cols] + final_neigh_cols]
+
 
 
 
