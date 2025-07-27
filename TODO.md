@@ -21,13 +21,13 @@ We’re building a **machine learning tool to predict nightly Airbnb prices** ba
 ✅ **Clean raw data**  
 > Done by Sam in `src/preprocess.py`. Loads the CSV, removes missing/outlier values, encodes categories, and saves cleaned data.
 
-⬜ **Feature Engineering Ideas**  
+✅ **Feature Engineering Ideas**  
 Try these in a notebook or new script:
 - `price_per_night = price / minimum_nights`
 - Log-transform highly skewed columns (`price`, `reviews_per_month`) to normalize distribution
 - Normalize/standardize numeric columns
 
-⬜ **Use a Scikit-Learn Pipeline**  
+✅ **Use a Scikit-Learn Pipeline**  
 Create a `preprocessing_pipeline.py` file to:
 - Bundle steps (imputer, encoder, scaler) into a pipeline
 - Easily reuse during modeling
@@ -38,18 +38,18 @@ Create a `preprocessing_pipeline.py` file to:
 
 ✅ **Basic EDA started** (`notebooks/eda.ipynb`)
 
-⬜ **Add correlation heatmap**
+✅ **Add correlation heatmap**
 ```python
 sns.heatmap(df.corr(), annot=True, cmap='coolwarm')
 ```
 
-⬜ **Plot numeric distributions**  
+✅ **Plot numeric distributions**  
 Look at histograms or boxplots of:
 - `number_of_reviews`
 - `availability_365`
 - `minimum_nights`
 
-⬜ **Analyze categorical features**
+✅ **Analyze categorical features**
 - Average price by `room_type`, `neighbourhood_group`
 - Count plots (how many listings per category)
 
