@@ -1,133 +1,113 @@
+✅ Airbnb Price Predictor – Team TODOs (Updated Roadmap)
+Welcome! This doc tracks everything we’ve done (and still need to do) for our Airbnb price prediction project. It’s broken down by category, with clear context and actionables. We’ve made great progress — let’s finish strong.
 
-# ✅ Airbnb Price Predictor – Team TODOs (Complete Roadmap)
+🎯 Project Goal Recap
+We’re building a machine learning tool to predict nightly Airbnb prices using host and listing details like location, room type, and reviews.
 
-Welcome! This document lays out everything that still needs to be done for our project — broken down by category. Everything has context, suggestions, and space for you to claim tasks. Let’s collaborate and make this project amazing.
+Final deliverables:
+A clean, user-friendly Flask web app where users input listing info and receive a predicted price
 
----
+Fully-trained and validated ML models (Linear Regression, Random Forest, XGBoost)
 
-## 🎯 Project Goal Recap
+All code, models, and docs stored in GitHub, with a polished project page via GitHub Pages
 
-We’re building a **machine learning tool to predict nightly Airbnb prices** based on features like location, room type, reviews, etc.
+🔄 Data Preprocessing
+✅ Cleaned Raw Data
 
-### Final goal:
-- Users can input an Airbnb listing’s details (like neighborhood, room type, etc.) and get a **predicted price**.
-- We’ll expose this as a simple **web app** using Flask (or Streamlit).
-- All code, models, visualizations, and writeups will be hosted in our GitHub repo and GitHub Pages site.
+preprocess_features.py now fully cleans the original dataset (removing missing values, capping outliers, etc.)
 
----
+✅ Removed Cheating Features
 
-## 🔄 Data Preprocessing
+We removed latitude and longitude to prevent location leakage (aka model cheating)
 
-✅ **Clean raw data**  
-> Done by Sam in `src/preprocess.py`. Loads the CSV, removes missing/outlier values, encodes categories, and saves cleaned data.
+✅ New Engineered Features
 
-✅ **Feature Engineering Ideas**  
-Try these in a notebook or new script:
-- `price_per_night = price / minimum_nights`
-- Log-transform highly skewed columns (`price`, `reviews_per_month`) to normalize distribution
-- Normalize/standardize numeric columns
+price_per_review
 
-✅ **Use a Scikit-Learn Pipeline**  
-Create a `preprocessing_pipeline.py` file to:
-- Bundle steps (imputer, encoder, scaler) into a pipeline
-- Easily reuse during modeling
+reviews_per_month_per_year
 
----
+is_multi_listing_host
 
-## 📊 Exploratory Data Analysis (EDA)
+Normalized all numeric fields using MinMaxScaler
 
-✅ **Basic EDA started** (`notebooks/eda.ipynb`)
+✅ Saved Scaler + Template Columns
 
-✅ **Add correlation heatmap**
-```python
-sns.heatmap(df.corr(), annot=True, cmap='coolwarm')
-```
+Now reusable in both training and the Flask app
 
-✅ **Plot numeric distributions**  
-Look at histograms or boxplots of:
-- `number_of_reviews`
-- `availability_365`
-- `minimum_nights`
+✅ Dropped Irrelevant Fields
 
-✅ **Analyze categorical features**
-- Average price by `room_type`, `neighbourhood_group`
-- Count plots (how many listings per category)
+Removed high-cardinality or useless columns (name, host_name, neighbourhood, etc.)
 
-⬜ **Write `summary.md`**
-Document 5–10 key findings from EDA — this helps everyone later during modeling.
+📊 Exploratory Data Analysis (EDA)
+✅ Initial EDA (notebooks/eda.ipynb)
 
----
+Explored value counts, missing data, and price distributions
 
-## 🧠 Modeling
+✅ Correlation Heatmap & Distribution Plots
 
-✅ **Baseline model (Linear Regression)**  
-> Implemented by Sam in `train_model.py`
+Identified skew and correlation across numeric features
 
-⬜ **Random Forest Regressor**
-- Train `RandomForestRegressor(random_state=42)`
-- Compare RMSE and R² to baseline
-- Store results in a dictionary or table for comparison
+🟡 Write summary.md
 
-⬜ **XGBoost Regressor**
-- Train `xgboost.XGBRegressor()`
-- Evaluate RMSE, R²
-- Compare performance to previous models
+Brief summary of 5–10 insights from EDA — helps justify modeling decisions later
 
-⬜ **Hyperparameter Tuning**
-> Optional but impactful
-- Use `GridSearchCV` or `RandomizedSearchCV`
-- Save best model parameters and performance
+🧠 Modeling
+✅ Baseline (Linear Regression)
 
-⬜ **Create `model_comparison.py`**
-- Combine all model results into one table
+Already trained and evaluated
 
----
+✅ Random Forest & XGBoost
 
-## 📈 Evaluation & Visualization
+Both trained with simplified complexity (to avoid memory issues and overfitting)
 
-⬜ **Prediction vs Actual Plot**
+✅ Cross-Validation Added
 
-⬜ **Residuals Histogram**
+All models are validated with 5-fold CV for better generalization comparison
 
-⬜ **Bar Chart: Model RMSEs**
+✅ Model Artifacts Saved
 
-⬜ **Save Best Model to Disk**
+Models saved as .pkl, including final column template and scaler
 
----
+🟡 Hyperparameter Tuning (Optional)
 
-## 🌐 Flask App (Stretch Goal)
+Could still improve XGBoost and RF further
 
-⬜ **Build Simple Flask Web App**
+🟡 Create model_comparison.py
 
-⬜ **Deploy via GitHub Pages or Render**
+Compare RMSE and R² for all models in one summary table or plot
 
----
+📈 Evaluation & Visualization
+✅ Prediction vs Actual Plot
+✅ Residuals Histogram
+✅ Bar Chart: Model RMSEs
+✅ Print Evaluation in train_model.py
 
-## 📚 Documentation & Website
+🌐 Flask Web App
+✅ Clean and Functional UI
 
-⬜ **README Enhancements**
+Removed confusing fields like latitude/longitude — users now input understandable values only
 
-⬜ **Team Member Contributions**
+✅ Predicts Using Real Trained Model
 
-⬜ **Improve GitHub Pages Website**
+Web app uses the exact same scaler and features as training
 
-⬜ **Final Presentation Slides**
+🟡 Improve Form Styling / UX
 
----
+Current layout works but could be more visually polished
 
-## 🛠 Suggestions & Workflow Tips
+🟡 Deploy to Render or GitHub Pages
 
-- Use `git pull` before starting work
-- Use `git add . && git commit -m "message"` to save changes
-- Use `git push` to share
-- Coordinate in group chat — avoid stepping on each other’s work
+Currently runs locally — next step is deploying online
 
----
+📚 Documentation & Presentation
+🟡 Update README.md with full project context
 
-## 👥 Task Tracker
+🟡 Team Contributions Section
 
-Make changes here as you work — or create issues/PRs in GitHub.
+List who did what (EDA, modeling, UI, etc.)
 
-✅ = Done  
-🟡 = In Progress  
-⬜ = Not started
+🟡 Update GitHub Pages Site
+
+Add demo screenshots, instructions, and project summary
+
+⬜ Final Presentation Slides
