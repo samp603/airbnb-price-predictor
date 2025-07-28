@@ -2,7 +2,7 @@
 
 Airbnb Price Predictor is a machine learning web application that estimates the nightly price of an Airbnb listing using real data from New York City. Built with scikit-learn, XGBoost, and Flask, this tool helps new hosts determine competitive prices based on listing characteristics like room type, host activity, and review metrics — without relying on GPS coordinates or other leaky features.
 
-👉 [Try the Live App on Render](https://your-render-url.com)
+👉 [Try the Live App on Render](https://airbnb-price-predictor-csyh.onrender.com)
 
 ---
 
