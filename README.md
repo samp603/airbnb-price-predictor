@@ -1,44 +1,139 @@
-\## Project Summary
+# 🏠 Airbnb Price Predictor
 
-Airbnb Price Predictor estimates nightly prices of listings using ML.
+Airbnb Price Predictor is a machine learning web application that estimates the nightly price of an Airbnb listing using real data from New York City. Built with scikit-learn, XGBoost, and Flask, this tool helps new hosts determine competitive prices based on listing characteristics like room type, host activity, and review metrics — without relying on GPS coordinates or other leaky features.
 
+👉 [Try the Live App on Render](https://airbnb-price-predictor-csyh.onrender.com)
 
+---
 
-\## Getting Started
+## 📌 Project Summary
 
-1\. Install dependencies: `pip install -r requirements.txt`
+The goal of this project is to:
 
-2\. Run preprocessing: `python src/preprocess_data.py`
+- Predict nightly Airbnb listing prices using NYC open data from Kaggle.
+- Build and compare multiple machine learning models (Linear Regression, Random Forest, XGBoost).
+- Deploy the best model in a user-friendly Flask web app.
+- Ensure the model is explainable, reproducible, and free from data leakage.
 
-3\. Train model: `python src/train_model.py`
+The dataset contains thousands of real Airbnb listings with metadata like location (neighborhood), room type, host behavior, review history, and availability.
 
+---
 
+## ⚙️ Getting Started
 
-\## Folder Structure
+Clone the repo and follow these steps to run everything locally:
 
-\- `data/` — Raw and cleaned CSVs
+### 1. Install Dependencies
 
-\- `src/` — Python scripts for ML pipeline
+```bash
+pip install -r requirements.txt
 
-\- `notebooks/` — Jupyter notebooks for EDA
+2. Preprocess the Raw Dataset
+python src/preprocess_data.py
+This script:
 
-\- `TODO.md` — Task list for collaborative work
+Cleans and filters raw data
 
+Caps outliers and fills missing values
 
+Creates engineered features
 
-\## Team Member Contributions
+One-hot encodes categorical variables
 
-\- Samuel Paris:
+Saves a cleaned CSV to /data/engineered_features.csv
 
-&nbsp; - Preprocessing, baseline model, repo structure
+Saves a trained MinMaxScaler and a CSV column template for inference
 
-\- Jeffrey Li:
+3. Train the Models
+python src/train_model.py
+This script:
 
-&nbsp; - (blank)
+Trains three models: Linear Regression, Random Forest, and XGBoost
 
-\- Elizabeth Minor:
+Evaluates RMSE and R² on test data
 
-&nbsp; - (blank)
+Saves models in the /models folder
 
+Stores training column structure to prevent mismatches during prediction
 
+🗂 Folder Structure
+├── data/
+│   ├── AB_NYC_2019.csv           ← Original dataset
+│   ├── engineered_features.csv   ← Cleaned dataset with new features
+│
+├── models/
+│   ├── minmax_scaler.pkl         ← Trained scaler for numeric features
+│   ├── final_model_columns.pkl   ← Template for input columns
+│   ├── xgboost_model.pkl         ← Final selected model
+│
+├── notebooks/
+│   ├── eda.ipynb                 ← Visualizations, feature exploration
+│
+├── src/
+│   ├── preprocess_data.py        ← Cleans and prepares data
+│   ├── train_model.py            ← Trains and evaluates ML models
+│   ├── app.py                    ← Flask app for predictions
+│
+├── templates/
+│   └── index.html                ← Frontend of the web app
+│
+├── static/
+│   └── style.css                 ← (Optional) Custom styles
+│
+├── requirements.txt
+├── README.md
+├── TODO.md
+🌐 Live Web App
+Our deployed web app allows users to input listing details like:
 
+Room Type (Entire, Private, Shared)
+
+Neighborhood Group (Brooklyn, Manhattan, etc.)
+
+Host Listings Count
+
+Reviews per Month
+
+Availability per Year
+
+Minimum Nights
+
+And receive an estimated nightly price, all without requiring GPS coordinates.
+
+📈 Models & Methods
+Baseline: Linear Regression
+
+Ensemble Models: Random Forest, XGBoost
+
+Feature Engineering:
+
+Price per review
+
+Reviews per month per year
+
+Is multi-listing host
+
+Data Leakage Fixes:
+
+Removed raw latitude/longitude
+
+Dropped raw IDs and names
+
+📎 Dataset
+Source: New York City Airbnb Open Data on Kaggle
+
+🚀 Deployment
+The app is deployed on Render for free hosting of the Flask app.
+
+To deploy yourself:
+
+Push to a public GitHub repo
+
+Create a new Web Service on Render
+
+Select app.py as the entry point
+
+Add a requirements.txt and optionally build.sh
+
+📜 License
+MIT License. Open to contributions.
