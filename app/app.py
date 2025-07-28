@@ -68,5 +68,9 @@ def predict():
     except Exception as e:
         return render_template('index.html', prediction=f"❌ Error: {str(e)}")
 
+@app.route('/google1234567890abcdef.html')
+def google_verify():
+    return "google-site-verification: google1234567890abcdef.html"
+
 if __name__ == '__main__':
     app.run(debug=True)
