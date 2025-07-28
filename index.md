@@ -2,7 +2,7 @@
 
 Welcome! This project is a machine learning-based tool that predicts nightly prices for Airbnb listings using real-world NYC data. It's designed to help new hosts estimate competitive prices in seconds.
 
-👉 **[Try the live app here]([https://your-render-app-url.com](https://airbnb-price-predictor-csyh.onrender.com/))**  
+👉 **[Try the live app here]([https://airbnb-price-predictor-csyh.onrender.com/])**  
 
 
 ---
