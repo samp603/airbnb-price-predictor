@@ -4,10 +4,11 @@ import numpy as np
 import pandas as pd
 
 app = Flask(__name__)
-model = joblib.load("../models/random_forest_model.pkl")  # Load best model
+import os
 
-# Load encoder + scaler if used in pipeline
-pipeline = joblib.load("../data/preprocessed_airbnb_pipeline.pkl")
+model = joblib.load(os.path.join(os.path.dirname(__file__), "../models/random_forest_model.pkl"))
+pipeline = joblib.load(os.path.join(os.path.dirname(__file__), "../data/preprocessed_airbnb_pipeline.pkl"))
+
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
