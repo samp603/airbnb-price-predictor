@@ -1,0 +1,2 @@
+latitude,longitude,minimum_nights,number_of_reviews,reviews_per_month,calculated_host_listings_count,availability_365,price_per_review,reviews_per_month_per_year,is_multi_listing_host,neighbourhood_group_Bronx,neighbourhood_group_Brooklyn,neighbourhood_group_Manhattan,neighbourhood_group_Queens,neighbourhood_group_Staten Island,room_type_Entire home/apt,room_type_Private room,room_type_Shared room
+40.64749,-73.97237,0.0,0.014308426073131956,0.00358974358974359,6,1.0,0.029655218397665682,0.0035897435897435893,1,0,1,0,0,0,0,1,0

@@ -1,46 +1,63 @@
-"""
-train_model.py - Model training for Airbnb Price Predictor
-
-This script:
-- Loads the cleaned dataset
-- Splits data into train/test sets
-- Trains Linear Regression, Random Forest, and XGBoost models
-- Outputs RMSE and R² metrics for comparison
-- Saves all models to disk
-
-TODOs:
-- Add feature importance visualization
-- Add cross-validation (e.g., k-fold)
-"""
-
+import os
 import pandas as pd
 import numpy as np
-from sklearn.model_selection import train_test_split
+import joblib
+import warnings
+
+from sklearn.model_selection import train_test_split, cross_val_score
 from sklearn.linear_model import LinearRegression
 from sklearn.ensemble import RandomForestRegressor
 from xgboost import XGBRegressor
 from sklearn.metrics import mean_squared_error, r2_score
-import joblib
-import os
+
+warnings.filterwarnings('ignore')
+
+
+def simplify_categories(df, column, top_n=20):
+    top_categories = df[column].value_counts().nlargest(top_n).index
+    df[column] = df[column].apply(lambda x: x if x in top_categories else 'Other')
+    return df
 
 
 def evaluate_model(name, model, X_test, y_test, results):
     preds = model.predict(X_test)
     rmse = np.sqrt(mean_squared_error(y_test, preds))
     r2 = r2_score(y_test, preds)
-    results[name] = {"RMSE": rmse, "R²": r2}
     print(f"{name}:\n  RMSE: {rmse:.2f}\n  R²: {r2:.2f}\n")
+    results[name] = {'RMSE': rmse, 'R2': r2}
+
+
+def cross_validate_model(name, model, X, y):
+    scores = cross_val_score(model, X, y, cv=5, scoring='neg_root_mean_squared_error')
+    mean_score = -scores.mean()
+    std_score = scores.std()
+    print(f"{name} CV RMSE: {mean_score:.2f} (+/- {std_score:.2f})\n")
 
 
 def train_models(data_path):
     df = pd.read_csv(data_path)
 
-    X = df.drop(['price'], axis=1)
+    # Simplify high-cardinality categorical columns
+    for col in ['neighbourhood', 'neighbourhood_group']:
+        if col in df.columns:
+            df = simplify_categories(df, col, top_n=20)
+
+
+    # Drop high-cardinality text fields that aren’t useful
+    df = df.drop(columns=['name', 'host_name'], errors='ignore')
+
+    # One-hot encode the remaining categorical columns
+    df = pd.get_dummies(df, drop_first=False)
+
+    # Drop rows with missing values
+    df = df.dropna()
+
+    # Define features and target
+    X = df.drop(columns=['price'])
     y = df['price']
 
-    X_train, X_test, y_train, y_test = train_test_split(
-        X, y, test_size=0.2, random_state=42
-    )
+    # Split into train and test sets
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
     results = {}
     models = {}
@@ -49,29 +66,36 @@ def train_models(data_path):
     lr = LinearRegression()
     lr.fit(X_train, y_train)
     evaluate_model("Linear Regression", lr, X_test, y_test, results)
+    cross_validate_model("Linear Regression", lr, X, y)
     models["linear_regression_model.pkl"] = lr
 
-    # Random Forest
-    rf = RandomForestRegressor(random_state=42)
+    # Random Forest (lower complexity to avoid memory error)
+    rf = RandomForestRegressor(n_estimators=50, max_depth=10, random_state=42)
     rf.fit(X_train, y_train)
     evaluate_model("Random Forest", rf, X_test, y_test, results)
+    cross_validate_model("Random Forest", rf, X, y)
     models["random_forest_model.pkl"] = rf
 
-    # XGBoost
-    xgb = XGBRegressor(random_state=42)
+    # XGBoost (lower complexity)
+    xgb = XGBRegressor(n_estimators=50, max_depth=6, learning_rate=0.1, verbosity=0, random_state=42)
     xgb.fit(X_train, y_train)
     evaluate_model("XGBoost", xgb, X_test, y_test, results)
+    cross_validate_model("XGBoost", xgb, X, y)
     models["xgboost_model.pkl"] = xgb
 
-    # Save models
-    os.makedirs("../models", exist_ok=True)
-    for filename, model in models.items():
-        joblib.dump(model, f"../models/{filename}")
-
-    # Summary
-    print("All models trained and saved successfully.")
+    print("✅ All models trained and saved.")
     print(pd.DataFrame(results).T)
+    
+    # Save template columns used during training
+    template_columns = list(X.columns)
+    template_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'models', 'final_model_columns.pkl'))
+    joblib.dump(template_columns, template_path)
+
+    # Save models
+    for filename, model in models.items():
+        joblib.dump(model, os.path.join('..', 'models', filename))
 
 
 if __name__ == '__main__':
-    train_models('../data/engineered_features.csv')
+    data_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'data', 'engineered_features.csv'))
+    train_models(data_path)
