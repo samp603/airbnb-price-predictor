@@ -8,8 +8,12 @@ import joblib
 import os
 
 
-input_path = "data/engineered_features.csv"
-output_path = "data/preprocessed_airbnb.csv"
+input_path = os.path.join(os.path.dirname(__file__), '..', 'data', 'engineered_features.csv')
+input_path = os.path.abspath(input_path)
+
+output_path = os.path.join(os.path.dirname(__file__), '..', 'data', 'preprocessed_airbnb.csv')
+output_path = os.path.abspath(output_path)
+
 
 
 df = pd.read_csv(input_path)
