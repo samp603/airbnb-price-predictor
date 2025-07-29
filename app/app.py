@@ -8,7 +8,7 @@ import requests
 app = Flask(__name__)
 
 # Load model and preprocessing artifacts
-model = joblib.load("models/random_forest_model.pkl")
+model = joblib.load("models/xgboost_model.pkl")
 scaler = joblib.load("data/minmax_scaler.pkl")
 kmeans = joblib.load("models/kmeans.pkl")
 template_columns = pd.read_csv("models/template_columns.csv").columns.tolist()
