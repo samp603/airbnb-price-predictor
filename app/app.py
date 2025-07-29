@@ -3,74 +3,94 @@ import pandas as pd
 import numpy as np
 import joblib
 import os
+import requests
 
 app = Flask(__name__)
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-# Paths to models and config
-SCALER_PATH = os.path.abspath(os.path.join(BASE_DIR, '..', 'models', 'minmax_scaler.pkl'))
-COLUMNS_PATH = os.path.abspath(os.path.join(BASE_DIR, '..', 'models', 'template_columns.csv'))
-MODEL_PATH = os.path.abspath(os.path.join(BASE_DIR, '..', 'models', 'xgboost_model.pkl'))
+# Load model and preprocessing artifacts
+model = joblib.load("models/random_forest_model.pkl")
+scaler = joblib.load("data/minmax_scaler.pkl")
+kmeans = joblib.load("models/kmeans.pkl")
+template_columns = pd.read_csv("models/template_columns.csv").columns.tolist()
 
-# Load artifacts
-scaler = joblib.load(SCALER_PATH)
-model = joblib.load(MODEL_PATH)
-template_columns = pd.read_csv(COLUMNS_PATH).columns.tolist()
+# === Address Geocoding ===
+def geocode_address(address):
+    url = "https://nominatim.openstreetmap.org/search"
+    params = {
+        "q": address,
+        "format": "json",
+        "limit": 1
+    }
+    headers = {
+        "User-Agent": "AirbnbPricePredictor/1.0"
+    }
+    response = requests.get(url, params=params, headers=headers)
+    data = response.json()
+    if data:
+        lat = float(data[0]["lat"])
+        lon = float(data[0]["lon"])
+        return lat, lon
+    else:
+        raise ValueError("Could not geocode the provided address.")
 
-@app.route('/', methods=['GET'])
+@app.route("/", methods=["GET", "POST"])
 def index():
-    return render_template('index.html')
+    if request.method == "POST":
+        try:
+            # User inputs
+            min_nights = float(request.form["minimum_nights"])
+            num_reviews = float(request.form["number_of_reviews"])
+            reviews_per_month = float(request.form["reviews_per_month"])
+            availability = float(request.form["availability_365"])
+            neighbourhood_group = request.form["neighbourhood_group"]
+            room_type = request.form["room_type"]
+            address = request.form["address"]
 
-@app.route('/predict', methods=['POST'])
-def predict():
-    try:
-        # Collect user input
-        user_input = {
-            'minimum_nights': float(request.form['minimum_nights']),
-            'number_of_reviews': float(request.form['number_of_reviews']),
-            'reviews_per_month': float(request.form['reviews_per_month']),
-            'calculated_host_listings_count': float(request.form['calculated_host_listings_count']),
-            'availability_365': float(request.form['availability_365']),
-            'neighbourhood_group': request.form['neighbourhood_group'],
-            'room_type': request.form['room_type'],
-        }
+            # Geocode address
+            latitude, longitude = geocode_address(address)
 
-        # Derived features
-        user_input['price_per_review'] = user_input['number_of_reviews'] / (user_input['number_of_reviews'] + 1)
-        user_input['reviews_per_month_per_year'] = user_input['reviews_per_month'] / 12
-        user_input['is_multi_listing_host'] = int(user_input['calculated_host_listings_count'] > 1)
+            # Engineered features
+            reviews_per_month_per_year = reviews_per_month / 12
+            location_cluster = kmeans.predict(pd.DataFrame([[latitude, longitude]], columns=["latitude", "longitude"]))[0]
 
-        df = pd.DataFrame([user_input])
+            # Log-transform numeric fields
+            data = {
+                "minimum_nights": np.log1p(min_nights),
+                "number_of_reviews": np.log1p(num_reviews),
+                "reviews_per_month": np.log1p(reviews_per_month),
+                "availability_365": np.log1p(availability),
+                "reviews_per_month_per_year": reviews_per_month_per_year,
+                "location_cluster": location_cluster,
+                "neighbourhood_group": neighbourhood_group,
+                "room_type": room_type
+            }
 
-        # Scale numeric features
-        numeric_cols = [
-            'minimum_nights', 'number_of_reviews', 'reviews_per_month',
-            'availability_365', 'reviews_per_month_per_year', 'price_per_review'
-        ]
-        df[numeric_cols] = scaler.transform(df[numeric_cols])
+            df = pd.DataFrame([data])
 
-        # One-hot encode categorical values
-        for col in ['neighbourhood_group', 'room_type']:
-            col_value = f"{col}_{user_input[col]}"
-            df[col_value] = 1
-        df.drop(columns=['neighbourhood_group', 'room_type'], inplace=True)
+            # One-hot encode categoricals
+            df = pd.get_dummies(df, columns=["neighbourhood_group", "room_type"], prefix=["neighbourhood_group", "room_type"])
 
-        # Add missing columns
-        for col in template_columns:
-            if col not in df.columns:
-                df[col] = 0
-        df = df[template_columns]
+            # Normalize numeric features
+            num_cols = ['minimum_nights', 'number_of_reviews', 'reviews_per_month',
+                        'availability_365', 'reviews_per_month_per_year']
+            df[num_cols] = scaler.transform(df[num_cols])
 
-        # Predict
-        price = model.predict(df)[0]
-        return render_template('index.html', prediction=f"${price:.2f}")
+            # Add missing columns and align
+            missing_cols = [col for col in template_columns if col not in df.columns]
+            if missing_cols:
+                missing_df = pd.DataFrame(0, index=df.index, columns=missing_cols)
+                df = pd.concat([df, missing_df], axis=1)
+            df = df[template_columns]
 
-    except Exception as e:
-        return render_template('index.html', prediction=f"❌ Error: {str(e)}")
+            # Predict
+            log_price = model.predict(df)[0]
+            price = np.expm1(log_price)
+            return render_template("index.html", prediction=f"${price:.2f}")
 
-@app.route('/googleb572414e60f38549.html')
-def google_verify():
-    return app.send_static_file('googleb572414e60f38549.html')
+        except Exception as e:
+            return render_template("index.html", prediction=f"❌ Error: {str(e)}")
 
-if __name__ == '__main__':
+    return render_template("index.html")
+
+if __name__ == "__main__":
     app.run(debug=True)

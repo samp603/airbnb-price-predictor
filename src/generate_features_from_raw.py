@@ -1,64 +1,57 @@
 import pandas as pd
 import numpy as np
-from sklearn.preprocessing import MinMaxScaler
 import os
+from sklearn.preprocessing import MinMaxScaler
+from sklearn.cluster import KMeans
 import joblib
 
-# Paths
-BASE_DIR = os.path.dirname(__file__)
-raw_path = os.path.abspath(os.path.join(BASE_DIR, '..', 'data', 'AB_NYC_2019.csv'))
-output_path = os.path.abspath(os.path.join(BASE_DIR, '..', 'data', 'engineered_features.csv'))
-scaler_path = os.path.abspath(os.path.join(BASE_DIR, '..', 'models', 'minmax_scaler.pkl'))
-template_path = os.path.abspath(os.path.join(BASE_DIR, '..', 'models', 'template_columns.csv'))
-
-# Load raw data
+# === Load Raw Data ===
+raw_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'data', 'AB_NYC_2019.csv'))
 df = pd.read_csv(raw_path)
 
-# Drop rows with missing values in critical columns
-df.dropna(subset=['price', 'latitude', 'longitude'], inplace=True)
-df['reviews_per_month'].fillna(0, inplace=True)
+# === Drop Useless or High Cardinality Columns ===
+df.drop(columns=['id', 'name', 'host_id', 'host_name', 'last_review'], inplace=True, errors='ignore')
 
-# Cap outliers
+# === Filter Outliers ===
 df = df[df['price'].between(20, 500)]
 df = df[df['minimum_nights'] <= 30]
 
-# Derived features
-df['price_per_review'] = df['price'] / (df['number_of_reviews'] + 1)
-df['reviews_per_month_per_year'] = df['reviews_per_month'] / 12
-df['is_multi_listing_host'] = (df['calculated_host_listings_count'] > 1).astype(int)
+# === Add Clustered Location Feature ===
+kmeans = KMeans(n_clusters=10, random_state=42)
+df['location_cluster'] = kmeans.fit_predict(df[['latitude', 'longitude']])
+df.drop(columns=['latitude', 'longitude'], inplace=True)
 
-# Normalize numeric features
+# Save KMeans model
+kmeans_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'models', 'kmeans.pkl'))
+os.makedirs(os.path.dirname(kmeans_path), exist_ok=True)
+joblib.dump(kmeans, kmeans_path)
+
+# === Add Engineered Features ===
+df['reviews_per_month_per_year'] = df['reviews_per_month'] / 12
+
+# Log transform skewed features
+df['minimum_nights'] = np.log1p(df['minimum_nights'])
+df['number_of_reviews'] = np.log1p(df['number_of_reviews'])
+df['reviews_per_month'] = np.log1p(df['reviews_per_month'])
+df['availability_365'] = np.log1p(df['availability_365'])
+
+# Drop rows with missing
+df.dropna(inplace=True)
+
+# === Target ===
+df['log_price'] = np.log1p(df['price'])
+
+# === Normalize numeric ===
+numeric_cols = ['minimum_nights', 'number_of_reviews', 'reviews_per_month',
+                'availability_365', 'reviews_per_month_per_year']
 scaler = MinMaxScaler()
-numeric_cols = [
-    'minimum_nights', 'number_of_reviews', 'reviews_per_month',
-    'availability_365', 'reviews_per_month_per_year', 'price_per_review'
-]
 df[numeric_cols] = scaler.fit_transform(df[numeric_cols])
 
-# Drop high-cardinality or irrelevant columns
-df.drop(columns=['id', 'name', 'host_id', 'host_name', 'last_review', 'neighbourhood'], inplace=True, errors='ignore')
-
-# One-hot encode categorical variables
-df = pd.get_dummies(df, columns=['neighbourhood_group', 'room_type'], drop_first=False)
-
-# Save scaler
+# Save Scaler
+scaler_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'data', 'minmax_scaler.pkl'))
 joblib.dump(scaler, scaler_path)
 
-# Save template column structure (excluding target variable)
-df_features = df.drop(columns=['price'], errors='ignore')
-
-# Convert all bool columns (one-hot encoded) to int (0/1)
-for col in df_features.select_dtypes(include='bool').columns:
-    df_features[col] = df_features[col].astype(int)
-
-# Save one example row with correct data types
-df_features.iloc[0:1].to_csv(template_path, index=False)
-
-
-# Save cleaned dataset
-os.makedirs(os.path.dirname(output_path), exist_ok=True)
-df.to_csv(output_path, index=False)
-
-print(f"✅ Cleaned dataset saved to {output_path}")
-print(f"📐 Template columns saved to {template_path}")
-print(f"🧪 Scaler saved to {scaler_path}")
+# === Save Processed Data ===
+out_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'data', 'engineered_features.csv'))
+df.to_csv(out_path, index=False)
+print(f"✅ Preprocessing complete: {out_path}")
